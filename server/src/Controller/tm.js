@@ -2,9 +2,10 @@ const { task, login } = require('../Models/tm');
 const jwt = require('jsonwebtoken');
 
 // Create new user
-async function createUser(username, password) {
+async function createUser(username,userid, password) {
     const add = await login.create({
         username,
+        userid,
         password,
     });
     console.log("User Added Successfully!");
@@ -32,33 +33,25 @@ async function validateUser(username, password) {
 }
 
 // Add new task
-async function addTask(id, name, des, date, priority, userId) {
+async function addTask(id, name, des, date, priority) {
     const add = await task.create({
         taskid: id,
         taskname: name,
         description: des,
         duedate: date,
         priority: priority,
-        userId: userId, // Store userId from login table
+        // Store userId from login table
     });
     return add;
 }
 
-// Middleware for authentication
-async function authMiddleware(req, res, next) {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).send('Unauthorized');
-
+async function getAllTasks() {
     try {
-        const decoded = jwt.verify(token, 'your_secret');
-        const user = await login.findById(decoded.id);
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-        req.user = user;
-        next();
-    } catch (err) {
-        res.status(403).send('Invalid token');
+        const tasks = await task.find({});
+        return tasks;
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        throw error;
     }
 }
 
@@ -91,4 +84,4 @@ async function updateTask(taskId, updatedData) {
     }
 }
 
-module.exports = { addTask, deleteTask, createUser, validateUser, updateTask, authMiddleware };
+module.exports = { addTask, deleteTask, createUser, validateUser, updateTask ,getAllTasks };

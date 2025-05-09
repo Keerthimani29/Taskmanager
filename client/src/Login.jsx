@@ -30,12 +30,14 @@ const Login = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     const username = e.target.username.value;
+    const userid = e.target.userid.value;
     const password = e.target.password.value;
+    
 
     const response = await fetch('http://localhost:5000/server/login/submitted', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username,password }),
     });
 
     const result = await response.text();
@@ -88,6 +90,7 @@ const Login = () => {
           <div className={styles['form-group']}>
             <label htmlFor="username">Username</label>
             <input type="text" name="username" id="username" required />
+            
           </div>
           <div className={styles['form-group']}>
             <label htmlFor="password">Password</label>

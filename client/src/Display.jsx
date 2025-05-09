@@ -20,19 +20,13 @@ function Display() {
 
   const fetchTasks = async () => {
     try {
-      const token = localStorage.getItem('token'); // or wherever you're storing it
-      const response = await axios.post('http://localhost:5000/getAll', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await axios.get('http://localhost:5000/server/getAll');
       console.log('Fetched Tasks:', response.data);
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
   };
-  
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -88,6 +82,23 @@ function Display() {
     }
   };
 
+  const handleComplete = async (taskId) => {
+    try {
+      const response = await axios.put(`http://localhost:5000/server/complete/${taskId}`);
+      if (response.status === 200) {
+        // Update task in local state if status is stored
+        const updatedTasks = tasks.map(task =>
+          task.taskid === taskId ? { ...task, status: 'Completed' } : task
+        );
+        setTasks(updatedTasks);
+        console.log('Task marked as completed');
+      }
+    } catch (error) {
+      console.error('Error marking task as completed:', error);
+    }
+  };
+
+
   return (
     <div className="task-wrapper">
       <div className="task-container py-5">
@@ -97,8 +108,8 @@ function Display() {
           </div>
 
           <div className="row justify-content-center">
-            {tasks.map((task, index) => (
-              <div key={index} className="col-12 col-md-6 col-lg-4 mb-4">
+            {tasks.filter(task => task.status === 'Pending').map(task => (
+              <div key={task.taskid} className="col-12 col-md-6 col-lg-4 mb-4">
                 <div className="card task-card shadow-sm">
                   <div className="card-body p-4">
                     <div className="d-flex justify-content-between align-items-center mb-3">
@@ -122,7 +133,7 @@ function Display() {
                         <span className="text-muted">Due Date:</span>
                         <span className="ms-auto fw-bold">{formatDate(task.duedate)}</span>
                       </div>
-                      
+
                       <div className="info-row py-2 border-bottom">
                         <i className="bi bi-people-fill text-danger me-2"></i>
                         <span className="text-muted">Priority:</span>
@@ -130,6 +141,68 @@ function Display() {
                       </div>
                     </div>
                     <div className="d-flex justify-content-end mt-3">
+                      <button className="btn btn-success btn-sm me-2" onClick={() => handleComplete(task.taskid)}>
+                        <i className="bi bi-check-circle me-1"></i>Complete
+                      </button>
+                      <button className="btn btn-primary btn-sm me-2" onClick={() => handleEdit(task.taskid)}>
+                        <i className="bi bi-pencil-square me-1"></i>Edit
+                      </button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(task.taskid)}>
+                        <i className="bi bi-trash me-1"></i>Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+
+{/* for completed tasks
+ */}
+      <div className="task-container py-5">
+        <div className="container-fluid px-4" style={{ maxWidth: "1200px" }}>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="font-weight-bold">Completed Tasks</h2>
+          </div>
+
+          <div className="row justify-content-center">
+          {tasks.filter(task => task.status === 'Completed').map(task => (
+              <div key={task.taskid} className="col-12 col-md-6 col-lg-4 mb-4">
+                <div className="card task-card shadow-sm">
+                  <div className="card-body p-4">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h4 className="card-title text-primary mb-0">{task.taskid}</h4>
+                    </div>
+
+                    <div className="info-row py-2 border-bottom">
+                      <i className="bi bi-card-text text-info me-2"></i>
+                      <span className="text-muted">Task:</span>
+                      <span className="ms-auto fw-bold">{task.taskname}</span>
+                    </div>
+
+                    <div className="info-row py-2 border-bottom">
+                      <i className="bi bi-cash-stack text-success me-2"></i>
+                      <span className="text-muted">Description:</span>
+                      <span className="ms-auto fw-bold">{task.description}</span>
+                    </div>
+                    <div className="card-text">
+                      <div className="info-row py-2 border-bottom">
+                        <i className="bi bi-clock-fill text-warning me-2"></i>
+                        <span className="text-muted">Due Date:</span>
+                        <span className="ms-auto fw-bold">{formatDate(task.duedate)}</span>
+                      </div>
+
+                      <div className="info-row py-2 border-bottom">
+                        <i className="bi bi-people-fill text-danger me-2"></i>
+                        <span className="text-muted">Priority:</span>
+                        <span className="ms-auto fw-bold">{task.priority}</span>
+                      </div>
+                    </div>
+                    <div className="d-flex justify-content-end mt-3">
+                      
                       <button className="btn btn-primary btn-sm me-2" onClick={() => handleEdit(task.taskid)}>
                         <i className="bi bi-pencil-square me-1"></i>Edit
                       </button>
@@ -206,11 +279,11 @@ function Display() {
                     </select>
                   </div>
                   <div className="modal-footer">
-                  <button type="submit" className="btn btn-primary">Save changes</button>
+                    <button type="submit" className="btn btn-primary">Save changes</button>
                     <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                       Close
                     </button>
-                    
+
                   </div>
                 </form>
               </div>

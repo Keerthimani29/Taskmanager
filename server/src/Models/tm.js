@@ -1,24 +1,23 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 
-const taskschema = new mongoose.Schema({
-    taskid :  { type: Number, required: true },
-    taskname : String,
-    description : String,
-    duedate : Date,
-    priority : String,
-    // Add this field
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'login',
-    required: true
+const taskSchema = new mongoose.Schema({
+  taskid: { type: Number, required: true },
+  taskname: { type: String },
+  description: { type: String },
+  duedate: { type: Date },
+  priority: { type: String },
+  status: {
+    type: String,
+    enum: ["Pending", "Completed"],
+    default: "Pending"
   },
+}, {
+  timestamps: true
+});
 
-},{
-    timestamps : true
-})
+const task = mongoose.model('task', taskSchema);
 
-const task = mongoose.model('task', taskschema);
 
 
 
@@ -26,6 +25,7 @@ const task = mongoose.model('task', taskschema);
 
 const loginSchema = new mongoose.Schema({
     username : String,
+    
     password : String,
     
 },{

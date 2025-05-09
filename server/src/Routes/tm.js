@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {task , login} = require('../Models/tm');
-const {addTask , getAllTasks , deleteTask , createUser , validateUser ,updateTask , authMiddleware} = require('../Controller/tm.js');
+const {addTask , getAllTasks , deleteTask , createUser , validateUser ,updateTask} = require('../Controller/tm.js');
 
 router.get('/hello', (req, res) => {
     res.send('Hello from the task manager API!');
@@ -45,14 +45,14 @@ router.post('/login/validate',async (req,res)=>{
 
 
 
-router.post('/getform', authMiddleware, (req, res) => {
+router.post('/getform', (req, res) => {
     console.log(req.body);
 
     const {taskid, taskname , description , duedate , priority} = req.body;
-    const userId = req.user._id;  // assuming user is authenticated and attached to request
+      // assuming user is authenticated and attached to request
 
 
-    const result = addTask(taskid, taskname , description, duedate, priority , userId);
+    const result = addTask(taskid, taskname , description, duedate, priority );
     res.send("All values are received and added to the database");
 });
 
@@ -99,16 +99,35 @@ router.put('/update/:id', async (req, res) => {
   }
 });
 
+// PUT route to mark task as completed
+router.put('/complete/:taskid', async (req, res) => {
+  try {
+    const updatedTask = await task.findOneAndUpdate(
+      { taskid: req.params.taskid },
+      { status: 'Completed' },
+      { new: true }
+    );
 
-
-router.get('/server/getAll', authMiddleware, async (req, res) => {
-    try {
-      const tasks = await task.find({ userId: req.user._id });
-      res.status(200).json(tasks);
-    } catch (error) {
-      res.status(500).json({ error: 'Server Error' });
+    if (!updatedTask) {
+      return res.status(404).json({ message: 'Task not found' });
     }
-  });
+
+    res.json(updatedTask);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+
+router.get('/getAll', async (req, res) => {
+    try {
+        const tasks = await getAllTasks();
+        res.status(200).json(tasks);
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        res.status(500).send('Internal server error');
+    }
+});
   
 
 module.exports = router;
